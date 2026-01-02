@@ -1,6 +1,6 @@
 # 📅 Multi-Calendar System
 
-A production-grade, FAANG-ready full-stack calendar application with advanced features including recurring events, analytics, multi-calendar support, and real-time synchronization.
+A production-grade, full-stack calendar application with advanced features including recurring events, analytics, multi-calendar support, and real-time synchronization.
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen.svg)](https://spring.io/projects/spring-boot)
