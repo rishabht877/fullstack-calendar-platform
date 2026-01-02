@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "autoprefixer": "^10.4.23",
+    "axios": "^1.13.2",
+    "chart.js": "^4.5.1",
+    "date-fns": "^4.1.0",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.562.0",
+    "postcss": "^8.5.6",
+    "react-big-calendar": "^1.19.4",
+    "react-chartjs-2": "^5.3.1",
+    "react-hook-form": "^7.68.0",
+    "react-router-dom": "^7.11.0",
+    "tailwindcss": "^4.1.18"
+  }
+}

@@ -1,0 +1,184 @@
+{
+    "title": "Calendar Application - Performance Metrics",
+    "tags": [
+        "calendar",
+        "spring-boot",
+        "performance"
+    ],
+    "timezone": "browser",
+    "panels": [
+        {
+            "id": 1,
+            "title": "API Latency (p50, p95, p99)",
+            "type": "graph",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"calendar-backend\"}[5m])) by (le))",
+                    "legendFormat": "p50"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"calendar-backend\"}[5m])) by (le))",
+                    "legendFormat": "p95"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"calendar-backend\"}[5m])) by (le))",
+                    "legendFormat": "p99"
+                }
+            ],
+            "yaxes": [
+                {
+                    "format": "s"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "title": "Request Rate (requests/sec)",
+            "type": "graph",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(http_server_requests_seconds_count{application=\"calendar-backend\"}[1m]))",
+                    "legendFormat": "Total Requests"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "title": "Error Rate (%)",
+            "type": "graph",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 8
+            },
+            "targets": [
+                {
+                    "expr": "(sum(rate(http_server_requests_seconds_count{status=~\"5..\",application=\"calendar-backend\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"calendar-backend\"}[5m]))) * 100",
+                    "legendFormat": "5xx Error Rate"
+                },
+                {
+                    "expr": "(sum(rate(http_server_requests_seconds_count{status=~\"4..\",application=\"calendar-backend\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"calendar-backend\"}[5m]))) * 100",
+                    "legendFormat": "4xx Error Rate"
+                }
+            ],
+            "yaxes": [
+                {
+                    "format": "percent"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "title": "Cache Hit Ratio",
+            "type": "stat",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 8
+            },
+            "targets": [
+                {
+                    "expr": "(rate(cache_gets_total{result=\"hit\"}[5m]) / rate(cache_gets_total[5m])) * 100",
+                    "legendFormat": "Hit Ratio"
+                }
+            ],
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "unit": "percent",
+                "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                        {
+                            "value": 0,
+                            "color": "red"
+                        },
+                        {
+                            "value": 80,
+                            "color": "yellow"
+                        },
+                        {
+                            "value": 95,
+                            "color": "green"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": 5,
+            "title": "JVM Memory Usage",
+            "type": "graph",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 16
+            },
+            "targets": [
+                {
+                    "expr": "jvm_memory_used_bytes{area=\"heap\",application=\"calendar-backend\"}",
+                    "legendFormat": "Heap Used"
+                },
+                {
+                    "expr": "jvm_memory_max_bytes{area=\"heap\",application=\"calendar-backend\"}",
+                    "legendFormat": "Heap Max"
+                }
+            ],
+            "yaxes": [
+                {
+                    "format": "bytes"
+                }
+            ]
+        },
+        {
+            "id": 6,
+            "title": "Database Connection Pool",
+            "type": "graph",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 16
+            },
+            "targets": [
+                {
+                    "expr": "hikaricp_connections_active{application=\"calendar-backend\"}",
+                    "legendFormat": "Active Connections"
+                },
+                {
+                    "expr": "hikaricp_connections_max{application=\"calendar-backend\"}",
+                    "legendFormat": "Max Connections"
+                }
+            ]
+        }
+    ],
+    "refresh": "5s",
+    "time": {
+        "from": "now-1h",
+        "to": "now"
+    },
+    "timepicker": {
+        "refresh_intervals": [
+            "5s",
+            "10s",
+            "30s",
+            "1m",
+            "5m"
+        ]
+    }
+}

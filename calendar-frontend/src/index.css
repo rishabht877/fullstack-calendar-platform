@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@layer components {
+
+    /* Apple Calendar Theme Overrides */
+    .apple-calendar {
+        @apply font-sans h-full;
+    }
+
+    /* Header (Days of Week) */
+    .apple-calendar .rbc-header {
+        @apply bg-[#FAFAFA] text-[#8E8E93] text-xs font-bold uppercase py-3 border-b border-[#E5E5EA];
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* Grid Borders */
+    .apple-calendar .rbc-month-view,
+    .apple-calendar .rbc-day-bg,
+    .apple-calendar .rbc-month-row {
+        @apply border border-[#E5E5EA];
+    }
+
+    /* Off-range dates (prev/next month) */
+    .apple-calendar .rbc-off-range-bg {
+        @apply bg-white opacity-50;
+        /* Keep white but maybe slightly faded text handled by rbc */
+    }
+
+    .apple-calendar .rbc-off-range .rbc-button-link {
+        @apply text-gray-300;
+    }
+
+    /* Date Cell Date Number */
+    .apple-calendar .rbc-date-cell {
+        @apply p-2 text-right;
+    }
+
+    .apple-calendar .rbc-button-link {
+        @apply text-[15px] font-normal text-[#1D1D1F] no-underline pointer-events-none;
+        /* Disable confusing default link behavior on number */
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    }
+
+    /* Today Highlight - The Circle */
+    /* We need to override the default entire-cell background and focus on the number */
+    .apple-calendar .rbc-today {
+        @apply bg-transparent;
+        /* Remove default yellow/blue background */
+    }
+
+    .apple-calendar .rbc-now .rbc-button-link {
+        @apply bg-[#FF9500] text-white rounded-full w-8 h-8 flex items-center justify-center mx-auto shadow-sm;
+    }
+
+    /* Hover Effect on Day Cells */
+    .apple-calendar .rbc-day-bg {
+        @apply transition-colors duration-100 cursor-pointer;
+    }
+
+    .apple-calendar .rbc-day-bg:hover {
+        background-color: rgba(0, 122, 255, 0.05);
+    }
+
+    /* Event Styles */
+    .apple-calendar .rbc-event {
+        @apply bg-transparent p-0 text-[#34C759];
+    }
+
+    .apple-calendar .rbc-event-content {
+        @apply text-xs font-medium pl-2 relative;
+    }
+
+    /* Green dot for events */
+    .apple-calendar .rbc-event-content::before {
+        content: '●';
+        @apply absolute left-0 top-[1px] text-[8px] text-[#34C759];
+    }
+}

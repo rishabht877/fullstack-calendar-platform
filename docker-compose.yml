@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  database:
+    image: mariadb:10.11
+    environment:
+      MARIADB_DATABASE: calendar_db
+      MARIADB_USER: calendar_user
+      MARIADB_PASSWORD: calendar_pass
+      MARIADB_ROOT_PASSWORD: root_pass
+    ports:
+      - "3307:3306"
+    networks:
+      - calendar-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - calendar-network
+
+  backend:
+    build: ./calendar-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:mariadb://database:3306/calendar_db}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-calendar_user}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD:-calendar_pass}
+      - SPRING_DATA_REDIS_HOST=redis
+      - JWT_SECRET=${JWT_SECRET:-your-very-long-production-secret-key-change-this}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=http://18.220.100.100.nip.io/api/google/callback
+      - FRONTEND_URL=http://18.220.100.100.nip.io
+    depends_on:
+      - database
+      - redis
+    networks:
+      - calendar-network
+
+  frontend:
+    build:
+      context: ./calendar-frontend
+      args:
+        - VITE_API_BASE_URL=/api
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - calendar-network
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - calendar-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards/dashboard-provider.yml:/etc/grafana/provisioning/dashboards/dashboard-provider.yml
+      - ./grafana/dashboards/json:/var/lib/grafana/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - calendar-network
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    networks:
+      - calendar-network
+
+networks:
+  calendar-network:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:

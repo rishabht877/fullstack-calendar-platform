@@ -1,0 +1,28 @@
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build Directories
+target/
+dist/
+build/
+bin/
+out/
+node_modules/
+.docker-compose.yml.swp
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# SSH Keys
+*.pem
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo

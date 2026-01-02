@@ -1,0 +1,79 @@
+groups:
+  - name: calendar_app_alerts
+    interval: 30s
+    rules:
+      # API Latency Alerts
+      - alert: HighAPILatencyP95
+        expr: histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application="calendar-backend"}[5m])) by (le, uri)) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API latency detected (p95 > 500ms)"
+          description: "API endpoint {{ $labels.uri }} has p95 latency of {{ $value }}s (threshold: 0.5s)"
+
+      - alert: CriticalAPILatencyP99
+        expr: histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application="calendar-backend"}[5m])) by (le, uri)) > 1.0
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "Critical API latency detected (p99 > 1s)"
+          description: "API endpoint {{ $labels.uri }} has p99 latency of {{ $value }}s. Immediate investigation required!"
+
+      # Error Rate Alerts
+      - alert: HighErrorRate
+        expr: sum(rate(http_server_requests_seconds_count{status=~"5..", application="calendar-backend"}[5m])) / sum(rate(http_server_requests_seconds_count{application="calendar-backend"}[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "High error rate detected (> 1%)"
+          description: "Error rate is {{ $value | humanizePercentage }}. Check application logs immediately."
+
+      # Cache Hit Ratio Alert
+      - alert: LowCacheHitRatio
+        expr: rate(cache_gets_total{result="hit"}[5m]) / rate(cache_gets_total[5m]) < 0.80
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Low cache hit ratio (< 80%)"
+          description: "Redis cache hit ratio is {{ $value | humanizePercentage }}. Consider investigating cache keys or TTL."
+
+      # Database Connection Pool Alert
+      - alert: DatabaseConnectionPoolExhaustion
+        expr: hikaricp_connections_active / hikaricp_connections_max > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "{{ $value | humanizePercentage }} of database connections are in use. Consider increasing pool size."
+
+      # JVM Memory Alert
+      - alert: HighJVMMemoryUsage
+        expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          component: jvm
+        annotations:
+          summary: "High JVM heap memory usage (> 85%)"
+          description: "JVM heap memory usage is {{ $value | humanizePercentage }}. Potential memory leak or need for heap tuning."
+
+      # Application Availability
+      - alert: ApplicationDown
+        expr: up{job="calendar-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: availability
+        annotations:
+          summary: "Calendar backend application is down!"
+          description: "The calendar backend has been unreachable for 1 minute."
