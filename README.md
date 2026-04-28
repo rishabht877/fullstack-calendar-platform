@@ -1,5 +1,9 @@
 # 📅 Multi-Calendar System
 
+**[Live Demo](multical-rish.up.railway.app)**
+> **⚠️ To test the live demo:** Register a new account first.
+
+
 A production-grade, full-stack calendar application with advanced features including recurring events, analytics, multi-calendar support, and real-time synchronization.
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
