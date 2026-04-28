@@ -36,6 +36,11 @@ public class GoogleCalendarConfig {
 
     @Bean
     public GoogleAuthorizationCodeFlow googleAuthorizationCodeFlow() {
+        System.out.println("Initializing Google OAuth Flow:");
+        System.out.println("Client ID length: " + (clientId != null ? clientId.length() : "null"));
+        System.out.println("Client Secret length: " + (clientSecret != null ? clientSecret.length() : "null"));
+        System.out.println("Redirect URI: " + redirectUri);
+
         GoogleClientSecrets.Details details = new GoogleClientSecrets.Details()
                 .setClientId(clientId)
                 .setClientSecret(clientSecret);
