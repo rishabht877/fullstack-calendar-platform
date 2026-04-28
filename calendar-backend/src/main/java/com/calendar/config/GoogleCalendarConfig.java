@@ -28,6 +28,9 @@ public class GoogleCalendarConfig {
     @Value("${google.redirect.uri}")
     private String redirectUri;
 
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR);
 
@@ -56,5 +59,9 @@ public class GoogleCalendarConfig {
 
     public String getRedirectUri() {
         return redirectUri;
+    }
+
+    public String getFrontendRedirectUri() {
+        return frontendUrl;
     }
 }

@@ -46,11 +46,16 @@ const Login: React.FC = () => {
                         />
                         {errors.password && <span className="text-xs text-red-600">Password is required</span>}
                     </div>
-                    <div className="flex items-baseline justify-between">
-                        <button className="px-6 py-2 mt-4 text-white bg-primary rounded-lg hover:bg-blue-600">
-                            Login
+                    <div className="flex flex-col space-y-4">
+                        <button
+                            type="submit"
+                            className="w-full px-10 py-3 mt-6 text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-all font-semibold shadow-md active:scale-95"
+                        >
+                            Log In
                         </button>
-                        <Link to="/register" className="text-sm text-blue-600 hover:underline">Register</Link>
+                        <div className="text-center text-sm text-gray-600">
+                            Don't have an account? <Link to="/register" className="text-blue-600 font-medium hover:underline">Sign Up</Link>
+                        </div>
                     </div>
                 </form>
             </div>

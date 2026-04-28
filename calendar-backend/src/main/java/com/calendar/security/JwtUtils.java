@@ -59,6 +59,8 @@ public class JwtUtils {
             System.err.println("JWT token is unsupported: " + e.getMessage());
         } catch (IllegalArgumentException e) {
             System.err.println("JWT claims string is empty: " + e.getMessage());
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            System.err.println("Invalid JWT signature: " + e.getMessage());
         }
 
         return false;

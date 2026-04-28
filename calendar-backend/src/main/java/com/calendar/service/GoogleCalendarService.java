@@ -11,6 +11,7 @@ import com.google.api.services.calendar.model.Events;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.calendar.model.User;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -347,5 +348,32 @@ public class GoogleCalendarService {
     private String safeTruncate(String value, int maxLength) {
         if (value == null) return null;
         return value.length() <= maxLength ? value : value.substring(0, maxLength);
+    }
+    public boolean isConnected(String userId) {
+        return getCredentialFromDatabase(Long.parseLong(userId)) != null;
+    }
+
+    public String getAuthUrl(String userId) {
+        return getAuthorizationUrl("http://localhost:8080/api/google/callback", Long.parseLong(userId));
+    }
+
+    public void handleCallback(String userId, String code) throws IOException {
+        exchangeCode(code, "http://localhost:8080/api/google/callback", userId);
+    }
+
+    public List<Event> fetchEvents(String userId) throws IOException {
+        User user = getUserById(Long.parseLong(userId));
+        Credential credential = getCredentialFromDatabase(Long.parseLong(userId));
+        return fetchGoogleCalendarEvents(credential, user);
+    }
+
+    public void exportEvent(String userId, Event event) throws IOException {
+        Credential credential = getCredentialFromDatabase(Long.parseLong(userId));
+        exportToGoogleCalendar(credential, event);
+    }
+
+    public void syncEvents(String userId) throws IOException {
+        User user = getUserById(Long.parseLong(userId));
+        syncGoogleEvents(user);
     }
 }

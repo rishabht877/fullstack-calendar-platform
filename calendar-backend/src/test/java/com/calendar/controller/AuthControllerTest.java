@@ -25,7 +25,12 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+    "GOOGLE_CLIENT_ID=test-client-id",
+    "GOOGLE_CLIENT_SECRET=test-client-secret",
+    "GOOGLE_REDIRECT_URI=http://localhost:8080/api/google/callback",
+    "FRONTEND_URL=http://localhost:5173"
+})
 @AutoConfigureMockMvc
 class AuthControllerTest {
 
