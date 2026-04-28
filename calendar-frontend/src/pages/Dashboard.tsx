@@ -143,6 +143,19 @@ const Dashboard: React.FC = () => {
         setIsViewDayModalOpen(true);
     };
 
+    const handleDeleteEvent = async (eventId: number) => {
+        try {
+            await EventService.deleteEvent(eventId);
+            console.log("Event deleted successfully:", eventId);
+            setIsCreateModalOpen(false);
+            setSelectedEvent(null);
+            if (selectedCalendarId) fetchEvents(selectedCalendarId);
+        } catch (err: any) {
+            console.error("Error deleting event:", err);
+            alert("Error deleting event: " + (err.response?.data?.message || err.message));
+        }
+    };
+
     const handleSaveEvent = async (eventData: any) => {
         console.log("handleSaveEvent called with:", eventData);
         if (!selectedCalendarId) {
@@ -379,6 +392,7 @@ const Dashboard: React.FC = () => {
                     setSelectedEvent(null);
                 }}
                 onSave={handleSaveEvent}
+                onDelete={handleDeleteEvent}
                 initialEvent={selectedEvent}
             />
             <DateInputModal

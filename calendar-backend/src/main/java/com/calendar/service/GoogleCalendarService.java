@@ -33,6 +33,9 @@ public class GoogleCalendarService {
     @Autowired
     private JsonFactory jsonFactory;
 
+    @org.springframework.beans.factory.annotation.Value("${google.redirect.uri}")
+    private String redirectUri;
+
     /**
      * Generate OAuth authorization URL for user to grant access.
      */
@@ -354,11 +357,11 @@ public class GoogleCalendarService {
     }
 
     public String getAuthUrl(String userId) {
-        return getAuthorizationUrl("http://localhost:8080/api/google/callback", Long.parseLong(userId));
+        return getAuthorizationUrl(redirectUri, Long.parseLong(userId));
     }
 
     public void handleCallback(String userId, String code) throws IOException {
-        exchangeCode(code, "http://localhost:8080/api/google/callback", userId);
+        exchangeCode(code, redirectUri, userId);
     }
 
     public List<Event> fetchEvents(String userId) throws IOException {

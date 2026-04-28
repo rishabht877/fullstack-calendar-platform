@@ -41,6 +41,10 @@ public class EventService {
 
     @CacheEvict(value = "analytics", allEntries = true) // Invalidate analytics when events change
     public EventDTO createEvent(Long calendarId, EventDTO eventDTO) {
+        if (eventDTO.getStartTime() != null && eventDTO.getEndTime() != null && eventDTO.getStartTime().isAfter(eventDTO.getEndTime())) {
+            throw new RuntimeException("End time cannot be before start time.");
+        }
+
         Calendar calendar = calendarRepository.findById(calendarId)
                 .orElseThrow(() -> new RuntimeException("Calendar not found"));
 
@@ -65,38 +69,30 @@ public class EventService {
 
     private EventDTO createRecurringEvents(Calendar calendar, EventDTO eventDTO) {
         RecurrenceDTO recurrence = eventDTO.getRecurrence();
+        if (recurrence == null || recurrence.getPattern() == null) {
+            throw new RuntimeException("Recurrence pattern is required for recurring events.");
+        }
+
         String seriesId = UUID.randomUUID().toString();
         List<Event> eventsToSave = new ArrayList<>();
 
         LocalDateTime currentStart = eventDTO.getStartTime();
         LocalDateTime currentEnd = eventDTO.getEndTime();
-        
-        // Duration of the event
         java.time.Duration duration = java.time.Duration.between(currentStart, currentEnd);
 
         int count = 0;
-        int maxOccurrences = recurrence.getType().equals("COUNT") ? recurrence.getOccurrences() : 1000; // safety limit
-        LocalDate untilDate = recurrence.getType().equals("DATE") ? recurrence.getUntilDate() : null;
-
-        // If it's weekly and specific days are selected, we basically need to advance day by day 
-        // until we hit a matching day, then add event, then continue.
-        // OR we can jump by weeks.
+        int maxOccurrences = 1000; // safety limit
+        if ("COUNT".equalsIgnoreCase(recurrence.getType())) {
+            maxOccurrences = recurrence.getOccurrences() != null ? recurrence.getOccurrences() : 10;
+        }
         
-        // Correct approach for "Weekly with multiple days (e.g., MWF)":
-        // 1. Start from the event start date.
-        // 2. Iterate day by day (or optimize).
-        // 3. Check if current day matches one of the selected days.
-        // 4. If yes, add event.
-        // 5. Stop when count reached or date passed.
+        LocalDate untilDate = "DATE".equalsIgnoreCase(recurrence.getType()) ? recurrence.getUntilDate() : null;
 
         boolean isWeekly = "WEEKLY".equalsIgnoreCase(recurrence.getPattern());
         List<String> targetDays = recurrence.getDaysOfWeek(); 
-        // Normalize target days to uppercase just in case: MONDAY, TUESDAY...
 
         LocalDateTime iterator = currentStart;
-
-        // Safety loop limit to prevent infinite
-        int safetyLimit = 365 * 5; 
+        int safetyLimit = 3650; // 10 years
         int loopCount = 0;
 
         while (count < maxOccurrences && loopCount < safetyLimit) {
@@ -107,36 +103,15 @@ public class EventService {
             boolean shouldCreate = false;
 
             if (isWeekly && targetDays != null && !targetDays.isEmpty()) {
-                // Check if current day is in targetDays
-                String currentDayOfWeek = iterator.getDayOfWeek().name(); // MONDAY, TUESDAY...
-                // Only consider checking if we match the day
-                // But we must also consider the "Interval".
-                // Complication: strict interval logic with specific days. 
-                // Usually "Every 2 weeks on MWF" means:
-                // Week 1: Mon, Wed, Fri (if date >= start)
-                // Week 2: Skip
-                // Week 3: Mon, Wed, Fri
-                
-                // For simplicity MVP: Assumes Interval = 1 or ignores interval for specific days logic 
-                // unless we implement full week-tracking.
-                // Let's assume Interval=1 for now if not specified.
-                
-                // For the user request "MWF repeated 5 times":
-                // If we are just daily iterating, we check if day matches.
-                
-                // Optimization: to support skipping days.
+                String currentDayOfWeek = iterator.getDayOfWeek().name();
                 if (targetDays.stream().anyMatch(d -> d.equalsIgnoreCase(currentDayOfWeek))) {
                      shouldCreate = true;
                 }
             } else {
-                // Daily, Monthly, or Weekly without specific days (just 7 days later)
                 shouldCreate = true;
             }
 
             if (shouldCreate) {
-                // Check conflict? Maybe skip or warn. For now, we allowed strict conflicts valid, 
-                // or we can fail the whole batch. Let's skip conflict check for batch for now or log it.
-                
                 Event event = new Event(eventDTO.getSubject(), iterator, iterator.plus(duration), calendar);
                 event.setDescription(eventDTO.getDescription());
                 event.setLocation(eventDTO.getLocation());
@@ -148,12 +123,11 @@ public class EventService {
 
             // Advance iterator
             if (isWeekly && targetDays != null && !targetDays.isEmpty()) {
-                // Move to next day
                 iterator = iterator.plusDays(1);
             } else {
-                // Apply standard interval
                  int interval = recurrence.getInterval() != null && recurrence.getInterval() > 0 ? recurrence.getInterval() : 1;
-                 switch (recurrence.getPattern().toUpperCase()) {
+                 String pattern = recurrence.getPattern().toUpperCase();
+                 switch (pattern) {
                      case "DAILY":
                          iterator = iterator.plusDays(interval);
                          break;
@@ -167,18 +141,26 @@ public class EventService {
                          iterator = iterator.plusYears(interval);
                          break;
                      default:
-                         iterator = iterator.plusDays(1); // fallback
+                         iterator = iterator.plusDays(1);
                  }
             }
             loopCount++;
         }
 
+        if (eventsToSave.isEmpty()) {
+             throw new RuntimeException("No events were created based on the recurrence rules.");
+        }
+
         List<Event> savedEvents = eventRepository.saveAll(eventsToSave);
-        return !savedEvents.isEmpty() ? convertToDTO(savedEvents.get(0)) : null;
+        return convertToDTO(savedEvents.get(0));
     }
 
     @CacheEvict(value = "analytics", allEntries = true)
     public EventDTO updateEvent(Long eventId, EventDTO eventDTO) {
+        if (eventDTO.getStartTime() != null && eventDTO.getEndTime() != null && eventDTO.getStartTime().isAfter(eventDTO.getEndTime())) {
+            throw new RuntimeException("End time cannot be before start time.");
+        }
+        
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 

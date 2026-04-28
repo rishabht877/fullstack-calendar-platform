@@ -27,7 +27,8 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
 
     React.useEffect(() => {
         if (isOpen && initialEvent) {
-            setSubject(initialEvent.subject || '');
+            // initialEvent is from react-big-calendar: { title, start, end, resource }
+            setSubject(initialEvent.title || initialEvent.resource?.subject || '');
             if (initialEvent.start) {
                 const d = new Date(initialEvent.start);
                 setDate(d.toISOString().split('T')[0]);
@@ -39,7 +40,6 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
             }
 
             let loc = initialEvent.resource?.location || '';
-            // Check if location implies online
             if (loc.startsWith('[Online] ')) {
                 setEventType('online');
                 setLocation(loc.replace('[Online] ', ''));
@@ -53,6 +53,8 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
             if (initialEvent.resource?.recurrence) {
                 setIsRecurring(true);
                 setRecurrenceData(initialEvent.resource.recurrence);
+            } else if (initialEvent.resource?.seriesId) {
+                setIsRecurring(true);
             }
         } else if (isOpen && !initialEvent) {
             // Reset if opening fresh
